@@ -1,0 +1,20 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Entornos
+.env
+.env.local
+.env.development
+.env.production
+
+# Sistemas
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Editor configs
+.vscode/
+.idea/
