@@ -1,17 +1,50 @@
 const API_BASE = "http://localhost:5000/api";
 
+// -----------------------------
+// Funcionalidad para la página Administrativa
+// -----------------------------
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Verificar si el usuario está autenticado al cargar la página
+  const token = localStorage.getItem("auth_token");
+
+  // Si no hay token, redirigir a login
+  if (!token) {
+    window.location.href = "../pages/login.html";
+  } else {
+    // Si está autenticado, cargar datos del robot
+    cargarEstado();
+    cargarTelemetria();
+    cargarEventos();
+
+    // Solo activar la actualización cada 3 segundos en la página de administración
+    setInterval(() => {
+      cargarEstado();
+      cargarTelemetria();
+    }, 3000);
+  }
+});
+
+// Función para cerrar sesión
+document.getElementById("logout")?.addEventListener("click", () => {
+  localStorage.removeItem("auth_token"); // Eliminar token
+  window.location.href = "../pages/login.html"; // Redirigir al login
+});
+
+// -----------------------------
+// Funciones para manejar la información y estado del robot
+// -----------------------------
+
 function formatearFecha(isoStr) {
   if (!isoStr) return "—";
-  return new Date(isoStr).toLocaleString();
+  const d = new Date(isoStr);
+  return d.toLocaleString();
 }
 
-// =========================
-//  ESTADO DEL ROBOT
-// =========================
+// Cambiar color del estado del robot
 function pintarEstado(estado) {
   const pill = document.getElementById("estado-pill");
   const upper = (estado || "DESCONOCIDO").toUpperCase();
-
   pill.textContent = upper;
   pill.className =
     "px-3 py-1 rounded-full text-xs font-semibold transition";
@@ -29,6 +62,7 @@ function pintarEstado(estado) {
   }
 }
 
+// Cargar el estado del robot
 async function cargarEstado() {
   try {
     const resp = await fetch(`${API_BASE}/estado`);
@@ -38,24 +72,25 @@ async function cargarEstado() {
       "Origen: " + (data.origen || "—");
     document.getElementById("estado-mensaje").textContent =
       data.mensaje || "—";
-
     pintarEstado(data.estado);
+
+    document.getElementById("last-update").textContent =
+      "Última actualización: " + new Date().toLocaleTimeString();
   } catch (err) {
+    console.error("Error cargando estado:", err);
     document.getElementById("estado-mensaje").textContent =
-      "Error con el servidor.";
+      "Error al obtener estado del servidor.";
     pintarEstado("ERROR");
   }
 }
 
-// =========================
-//  TELEMETRÍA
-// =========================
+// Cargar la telemetría del robot
 async function cargarTelemetria() {
   try {
     const resp = await fetch(`${API_BASE}/telemetria/ultima`);
     if (!resp.ok) {
       document.getElementById("sensores-fecha").textContent =
-        "Sin telemetría aún";
+        "Sin telemetría aún.";
       return;
     }
 
@@ -74,62 +109,64 @@ async function cargarTelemetria() {
     document.getElementById("sensor-temp").textContent =
       sensores.temperatura_c ?? "—";
 
-    document.getElementById("sensor-tapa").textContent =
+    const tapaText =
       sensores.tapa_abierta === true
         ? "Abierta"
         : sensores.tapa_abierta === false
         ? "Cerrada"
         : "—";
+    document.getElementById("sensor-tapa").textContent = tapaText;
   } catch (err) {
+    console.error("Error cargando telemetría:", err);
     document.getElementById("sensores-fecha").textContent =
-      "Error cargando telemetría.";
+      "Error al obtener telemetría.";
   }
 }
 
-// =========================
-//  EVENTOS
-// =========================
+// Cargar eventos recientes
 async function cargarEventos() {
   try {
     const resp = await fetch(`${API_BASE}/eventos`);
     const data = await resp.json();
-
     const tbody = document.getElementById("tabla-eventos");
 
     if (!Array.isArray(data) || data.length === 0) {
       tbody.innerHTML =
-        '<tr><td colspan="5" class="py-3 text-center text-gray-400">Sin eventos</td></tr>';
+        '<tr><td colspan="5" class="py-3 text-center text-gray-400">Sin eventos aún</td></tr>';
       return;
     }
 
     tbody.innerHTML = "";
+    data
+      .slice()
+      .reverse()
+      .forEach((ev) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b last:border-0";
 
-    data.reverse().forEach((ev) => {
-      const tr = document.createElement("tr");
-      tr.className = "border-b last:border-0";
+        tr.innerHTML = `
+          <td class="py-2 pr-2">${formatearFecha(ev.fecha)}</td>
+          <td class="py-2 pr-2">${ev.tipo || "—"}</td>
+          <td class="py-2 pr-2">${ev.accion || "—"}</td>
+          <td class="py-2 pr-2">${ev.detalle || "—"}</td>
+          <td class="py-2 pr-2">${ev.nivel_confianza ?? "—"}</td>
+        `;
 
-      tr.innerHTML = `
-        <td class="py-2 pr-2">${formatearFecha(ev.fecha)}</td>
-        <td class="py-2 pr-2">${ev.tipo || "—"}</td>
-        <td class="py-2 pr-2">${ev.accion || "—"}</td>
-        <td class="py-2 pr-2">${ev.detalle || "—"}</td>
-        <td class="py-2 pr-2">${ev.nivel_confianza ?? "—"}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+        tbody.appendChild(tr);
+      });
   } catch (err) {
-    console.error("Error eventos:", err);
+    console.error("Error cargando eventos:", err);
   }
 }
 
-// =========================
-//  MANDAR COMANDOS
-// =========================
+// Enviar comando al robot
 async function enviarComando(comando) {
   try {
     const resp = await fetch(`${API_BASE}/comandos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ comando }),
     });
 
@@ -137,21 +174,11 @@ async function enviarComando(comando) {
     document.getElementById("comando-respuesta").textContent =
       "Respuesta: " + (data.message || "Comando enviado.");
 
+    // Actualizar estado después de enviar comando
     cargarEstado();
   } catch (err) {
+    console.error("Error enviando comando:", err);
     document.getElementById("comando-respuesta").textContent =
       "Error al enviar comando.";
   }
 }
-
-// =========================
-//  REFRESCO AUTOMÁTICO
-// =========================
-cargarEstado();
-cargarTelemetria();
-cargarEventos();
-
-setInterval(() => {
-  cargarEstado();
-  cargarTelemetria();
-}, 3000);

@@ -1,39 +1,12 @@
-/* Botones reutilizables */
-.btn-gray {
-  @apply px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 hover:bg-gray-300 transition;
+:root {
+  --verde: #16a34a;
+  --naranja: #f97316;
+  --gris-fondo: #f3f4f6;
 }
 
-.btn-green {
-  @apply px-3 py-1 rounded-full text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition;
+body {
+  background-color: var(--gris-fondo);
 }
-
-.btn-red {
-  @apply px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition;
-}
-
-/* Caja de sensor */
-.sensor-box {
-  @apply bg-gray-50 rounded-lg p-3 flex flex-col items-center;
-}
-
-.sensor-title {
-  @apply text-xs text-gray-500;
-}
-
-.sensor-value {
-  @apply text-lg font-semibold text-gray-800;
-}
-
-.sensor-unit {
-  @apply text-[11px] text-gray-400;
-}
-
-/* Botón refrescar */
-.refresh-btn {
-  @apply text-xs px-3 py-1 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition;
-}
-
-/* Footer */
-.footer {
-  @apply text-center text-[11px] text-gray-400 py-3;
+h1 {
+  color: var(--verde);
 }
