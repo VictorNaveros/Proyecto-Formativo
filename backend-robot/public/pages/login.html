@@ -1,27 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Robot Ecológico</title>
-    <link rel="stylesheet" href="../styles/styles.css">
+
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="../styles/styles.css" />
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 flex justify-center items-center h-screen">
 
     <div class="max-w-sm w-full bg-white p-6 rounded-xl shadow-lg">
-        <h1 class="text-2xl font-semibold text-center mb-6">Login Administrador</h1>
+        <h1 class="text-2xl font-semibold text-center mb-2">Login Administrador</h1>
+        <p class="text-xs text-gray-500 text-center mb-6">
+            Acceso solo para el administrador del Robot Ecológico
+        </p>
 
         <form id="login-form">
             <div class="mb-4">
-                <label for="username" class="block text-sm font-medium text-gray-700">Nombre de usuario</label>
-                <input type="text" id="username" name="username" class="w-full p-2 border border-gray-300 rounded-md" required />
+                <label for="username" class="block text-sm font-medium text-gray-700">
+                    Nombre de usuario
+                </label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="w-full p-2 border border-gray-300 rounded-md"
+                    autocomplete="username"
+                    required
+                />
             </div>
+
             <div class="mb-6">
-                <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                <input type="password" id="password" name="password" class="w-full p-2 border border-gray-300 rounded-md" required />
+                <label for="password" class="block text-sm font-medium text-gray-700">
+                    Contraseña
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="w-full p-2 border border-gray-300 rounded-md"
+                    autocomplete="current-password"
+                    required
+                />
             </div>
-            <button type="submit" class="w-full bg-[color:var(--naranja)] text-white py-2 rounded-md">Iniciar sesión</button>
+
+            <button
+                type="submit"
+                class="w-full bg-[color:var(--naranja)] hover:brightness-110 text-white py-2 rounded-md text-sm font-semibold transition"
+            >
+                Iniciar sesión
+            </button>
         </form>
 
         <p id="error-message" class="text-red-500 text-xs mt-4 text-center"></p>

@@ -1,156 +1,173 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Robot Ecológico</title>
-    <link rel="stylesheet" href="../styles/styles.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Robot Ecológico</title>
+
+  <link rel="stylesheet" href="../styles/styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="min-h-screen flex flex-col bg-gray-100">
-
-    <!-- HEADER -->
-    <header class="bg-[color:var(--naranja)] text-white shadow-md">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-2xl">♻️</div>
-          <div>
-            <h1 class="text-xl font-semibold">Robot Ecológico</h1>
-            <p class="text-xs text-orange-100">Panel de monitoreo en tiempo real</p>
-          </div>
+  <!-- HEADER -->
+  <header class="bg-[color:var(--naranja)] text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-2xl">
+          ♻️
         </div>
-        <span id="last-update" class="text-xs text-orange-100">Última actualización: —</span>
-        <button id="logout" class="text-white mx-4 hover:text-gray-300">Cerrar sesión</button>
+        <div>
+          <h1 class="text-xl font-semibold">Robot Ecológico</h1>
+          <p class="text-xs text-orange-100">Panel de monitoreo en tiempo real</p>
+        </div>
       </div>
-    </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1">
-        <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-            <!-- Fila superior: Estado + Sensores -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Estado del robot -->
-                <section class="md:col-span-1 bg-white rounded-xl shadow p-4 flex flex-col gap-3">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <span class="text-2xl">🤖</span> Estado del robot
-                    </h2>
-                    <div class="flex items-center gap-3">
-                        <div id="estado-pill" class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">DESCONOCIDO</div>
-                        <span id="estado-origen" class="text-xs text-gray-400">Origen: —</span>
-                    </div>
-                    <p id="estado-mensaje" class="text-sm text-gray-600">Esperando datos...</p>
+      <div class="flex items-center gap-4 text-xs">
+        <span id="last-update" class="text-orange-100">
+          Última actualización: —
+        </span>
+        <button id="logout"
+          class="px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-xs font-semibold">
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </header>
 
-                    <div class="mt-3">
-                        <p class="text-xs font-semibold text-gray-500 mb-1">Comandos rápidos:</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 hover:bg-gray-300 transition" onclick="enviarComando('PAUSAR')">⏸️ Pausar</button>
-                            <button class="px-3 py-1 rounded-full text-xs font-semibold bg-[color:var(--verde)] text-white hover:brightness-110 transition" onclick="enviarComando('REANUDAR')">▶️ Reanudar</button>
-                            <button class="px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition" onclick="enviarComando('ERROR')">⚠️ Marcar error</button>
-                        </div>
-                        <p id="comando-respuesta" class="mt-2 text-[11px] text-gray-500"></p>
-                    </div>
-                </section>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1">
+    <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <!-- Fila superior: Estado + Sensores -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Estado del robot -->
+        <section class="md:col-span-1 bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            <span class="text-2xl">🤖</span>
+            Estado del robot
+          </h2>
 
-                <!-- Sensores -->
-                <section class="md:col-span-2 bg-white rounded-xl shadow p-4 flex flex-col gap-3">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <span class="text-2xl">📡</span> Sensores
-                    </h2>
-                    <p id="sensores-fecha" class="text-xs text-gray-400 mb-1">Sin telemetría recibida.</p>
+          <div class="flex items-center gap-3">
+            <div id="estado-pill"
+              class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">
+              DESCONOCIDO
+            </div>
+            <span id="estado-origen" class="text-xs text-gray-400">
+              Origen: —
+            </span>
+          </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
-                            <span class="text-xs text-gray-500">Distancia</span>
-                            <span id="sensor-distancia" class="text-lg font-semibold text-gray-800">—</span>
-                            <span class="text-[11px] text-gray-400">cm</span>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
-                            <span class="text-xs text-gray-500">Nivel de basura</span>
-                            <span id="sensor-nivel" class="text-lg font-semibold text-gray-800">—</span>
-                            <span class="text-[11px] text-gray-400">% aprox.</span>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
-                            <span class="text-xs text-gray-500">Peso</span>
-                            <span id="sensor-peso" class="text-lg font-semibold text-gray-800">—</span>
-                            <span class="text-[11px] text-gray-400">kg</span>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
-                            <span class="text-xs text-gray-500">Temperatura</span>
-                            <span id="sensor-temp" class="text-lg font-semibold text-gray-800">—</span>
-                            <span class="text-[11px] text-gray-400">°C</span>
-                        </div>
-                    </div>
+          <p id="estado-mensaje" class="text-sm text-gray-600">
+            Esperando datos...
+          </p>
 
-                    <div class="mt-2 flex items-center gap-2 text-sm">
-                        <span class="text-xs text-gray-500">Estado tapa:</span>
-                        <span id="sensor-tapa" class="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-700">—</span>
-                    </div>
-                </section>
+          <div class="mt-3">
+            <p class="text-xs font-semibold text-gray-500 mb-1">
+              Comandos rápidos:
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 hover:bg-gray-300 transition"
+                onclick="enviarComando('PAUSAR')">
+                ⏸️ Pausar
+              </button>
+              <button
+                class="px-3 py-1 rounded-full text-xs font-semibold bg-[color:var(--verde)] text-white hover:brightness-110 transition"
+                onclick="enviarComando('REANUDAR')">
+                ▶️ Reanudar
+              </button>
+              <button
+                class="px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition"
+                onclick="enviarComando('ERROR')">
+                ⚠️ Marcar error
+              </button>
+            </div>
+            <p id="comando-respuesta" class="mt-2 text-[11px] text-gray-500"></p>
+          </div>
+        </section>
+
+        <!-- Sensores -->
+        <section class="md:col-span-2 bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            <span class="text-2xl">📡</span>
+            Sensores
+          </h2>
+
+          <p id="sensores-fecha" class="text-xs text-gray-400 mb-1">
+            Sin telemetría recibida.
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Botellas detectadas -->
+            <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
+              <span class="text-xs text-gray-500">Botellas detectadas</span>
+              <span id="sensor-botellas" class="text-lg font-semibold text-gray-800">—</span>
+              <span class="text-[11px] text-gray-400">Total acumulado</span>
             </div>
 
-            <!-- Tabla de eventos -->
-            <section class="bg-white rounded-xl shadow p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <span class="text-2xl">📋</span> Eventos recientes
-                    </h2>
-                    <button class="text-xs px-3 py-1 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition" onclick="cargarEventos()">🔄 Actualizar</button>
-                </div>
+            <!-- Nivel de llenado -->
+            <div class="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
+              <span class="text-xs text-gray-500">Nivel de llenado</span>
+              <span id="sensor-nivel" class="text-lg font-semibold text-gray-800">—</span>
+              <span class="text-[11px] text-gray-400">% aproximado</span>
+            </div>
+          </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b text-xs text-gray-500">
-                                <th class="py-2 pr-2">Fecha/Hora</th>
-                                <th class="py-2 pr-2">Tipo</th>
-                                <th class="py-2 pr-2">Acción</th>
-                                <th class="py-2 pr-2">Detalle</th>
-                                <th class="py-2 pr-2">Confianza</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-eventos" class="text-xs text-gray-700">
-                            <tr>
-                                <td colspan="5" class="py-3 text-center text-gray-400">Sin eventos aún</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+          <!-- Distancia ultrasónico -->
+          <div class="mt-2 flex items-center gap-2 text-sm">
+            <span class="text-xs text-gray-500">Distancia ultrasónico:</span>
+            <span id="sensor-distancia"
+              class="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-700">—</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tabla de eventos -->
+      <section class="bg-white rounded-xl shadow p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            <span class="text-2xl">📋</span>
+            Eventos recientes
+          </h2>
+          <button
+            class="text-xs px-3 py-1 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+            onclick="cargarEventos()">
+            🔄 Actualizar
+          </button>
         </div>
-    </main>
 
-    <!-- FOOTER -->
-    <footer class="text-center text-[11px] text-gray-400 py-3">
-        Robot Ecológico · Panel básico · Campo educativo 🤖♻️
-    </footer>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead>
+              <tr class="border-b text-xs text-gray-500">
+                <th class="py-2 pr-2">Fecha/Hora</th>
+                <th class="py-2 pr-2">Tipo</th>
+                <th class="py-2 pr-2">Acción</th>
+                <th class="py-2 pr-2">Detalle</th>
+                <th class="py-2 pr-2">Confianza</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-eventos" class="text-xs text-gray-700">
+              <tr>
+                <td colspan="5" class="py-3 text-center text-gray-400">
+                  Sin eventos aún
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
 
-    <!-- Vincular el JS -->
-    <script src="../scripts/admin.js"></script>
+  <!-- FOOTER -->
+  <footer class="text-center text-[11px] text-gray-400 py-3">
+    Robot Ecológico · Panel básico · Campo educativo 🤖♻️
+  </footer>
 
-    <!-- Verificar si el usuario está autenticado -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const token = localStorage.getItem("auth_token");
-
-            // Si no hay token, redirigir a login
-            if (!token) {
-                window.location.href = "../pages/login.html";
-            }
-        });
-
-        // Cerrar sesión
-        document.getElementById("logout").addEventListener("click", () => {
-            localStorage.removeItem("auth_token");
-            window.location.href = "../pages/login.html";  // Redirigir al login
-        });
-
-        function enviarComando(comando) {
-            console.log(`Comando enviado: ${comando}`);
-        }
-
-        function cargarEventos() {
-            console.log("Cargando eventos...");
-        }
-    </script>
+  <!-- JS del panel -->
+  <script src="../scripts/admin.js"></script>
 </body>
+
 </html>

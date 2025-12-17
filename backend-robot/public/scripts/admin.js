@@ -1,38 +1,46 @@
 const API_BASE = "http://localhost:5000/api";
 
 // -----------------------------
-// Funcionalidad para la página Administrativa
+// Protección de acceso (solo admin logueado)
 // -----------------------------
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Verificar si el usuario está autenticado al cargar la página
-  const token = localStorage.getItem("auth_token");
+  const userStr = localStorage.getItem("user");
 
-  // Si no hay token, redirigir a login
-  if (!token) {
-    window.location.href = "../pages/login.html";
-  } else {
-    // Si está autenticado, cargar datos del robot
+  if (!userStr) {
+    window.location.href = "/pages/login.html";
+    return;
+  }
+
+  try {
+    const user = JSON.parse(userStr);
+    console.log("👤 Usuario logueado:", user.username || user.email || user.id);
+  } catch (e) {
+    console.error("Error leyendo el usuario de localStorage:", e);
+    localStorage.removeItem("user");
+    window.location.href = "/pages/login.html";
+    return;
+  }
+
+  // Si todo bien, cargamos datos
+  cargarEstado();
+  cargarTelemetria();
+  cargarEventos();
+
+  // Actualizar estado y sensores cada 3 segundos
+  setInterval(() => {
     cargarEstado();
     cargarTelemetria();
-    cargarEventos();
-
-    // Solo activar la actualización cada 3 segundos en la página de administración
-    setInterval(() => {
-      cargarEstado();
-      cargarTelemetria();
-    }, 3000);
-  }
+  }, 3000);
 });
 
-// Función para cerrar sesión
+// Cerrar sesión
 document.getElementById("logout")?.addEventListener("click", () => {
-  localStorage.removeItem("auth_token"); // Eliminar token
-  window.location.href = "../pages/login.html"; // Redirigir al login
+  localStorage.removeItem("user");
+  window.location.href = "/pages/login.html";
 });
 
 // -----------------------------
-// Funciones para manejar la información y estado del robot
+// Utilidades
 // -----------------------------
 
 function formatearFecha(isoStr) {
@@ -62,7 +70,10 @@ function pintarEstado(estado) {
   }
 }
 
-// Cargar el estado del robot
+// -----------------------------
+// Estado del robot
+// -----------------------------
+
 async function cargarEstado() {
   try {
     const resp = await fetch(`${API_BASE}/estado`);
@@ -84,7 +95,10 @@ async function cargarEstado() {
   }
 }
 
-// Cargar la telemetría del robot
+// -----------------------------
+// Telemetría (IR + ultrasónico)
+// -----------------------------
+
 async function cargarTelemetria() {
   try {
     const resp = await fetch(`${API_BASE}/telemetria/ultima`);
@@ -100,22 +114,39 @@ async function cargarTelemetria() {
     document.getElementById("sensores-fecha").textContent =
       "Última telemetría: " + formatearFecha(data.fecha);
 
-    document.getElementById("sensor-distancia").textContent =
-      sensores.distancia_cm ?? "—";
-    document.getElementById("sensor-nivel").textContent =
-      sensores.nivel_basura ?? "—";
-    document.getElementById("sensor-peso").textContent =
-      sensores.peso_kg ?? "—";
-    document.getElementById("sensor-temp").textContent =
-      sensores.temperatura_c ?? "—";
+    // 1) Botellas detectadas (IR)
+    document.getElementById("sensor-botellas").textContent =
+      sensores.botellas_total ?? "—";
 
-    const tapaText =
-      sensores.tapa_abierta === true
-        ? "Abierta"
-        : sensores.tapa_abierta === false
-        ? "Cerrada"
-        : "—";
-    document.getElementById("sensor-tapa").textContent = tapaText;
+    // 2) Distancia del ultrasónico (solo para referencia/depuración)
+    if (sensores.distancia_cm != null) {
+      document.getElementById("sensor-distancia").textContent =
+        sensores.distancia_cm + " cm";
+    } else {
+      document.getElementById("sensor-distancia").textContent = "—";
+    }
+
+    // 3) Nivel de llenado (%) - o usamos sensores.nivel_basura, o lo calculamos
+    let nivel = sensores.nivel_basura;
+
+    if (
+      (nivel == null || isNaN(nivel)) &&
+      typeof sensores.distancia_cm === "number"
+    ) {
+      const d = sensores.distancia_cm;
+
+      // Estos valores son EJEMPLO. Deben ajustarse con pruebas reales.
+      const dMax = 40; // distancia cuando el contenedor está VACÍO
+      const dMin = 5;  // distancia cuando está LLENO
+
+      let porcentaje = ((dMax - d) / (dMax - dMin)) * 100;
+      porcentaje = Math.max(0, Math.min(100, Math.round(porcentaje)));
+
+      nivel = porcentaje;
+    }
+
+    document.getElementById("sensor-nivel").textContent =
+      nivel != null && !isNaN(nivel) ? `${nivel}%` : "—";
   } catch (err) {
     console.error("Error cargando telemetría:", err);
     document.getElementById("sensores-fecha").textContent =
@@ -123,7 +154,10 @@ async function cargarTelemetria() {
   }
 }
 
-// Cargar eventos recientes
+// -----------------------------
+// Eventos (incluye la cámara como “sensor inteligente”)
+// -----------------------------
+
 async function cargarEventos() {
   try {
     const resp = await fetch(`${API_BASE}/eventos`);
@@ -159,7 +193,10 @@ async function cargarEventos() {
   }
 }
 
-// Enviar comando al robot
+// -----------------------------
+// Comandos al robot
+// -----------------------------
+
 async function enviarComando(comando) {
   try {
     const resp = await fetch(`${API_BASE}/comandos`, {
